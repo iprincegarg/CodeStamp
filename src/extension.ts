@@ -38,6 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
         const languageId = doc.languageId;
         let commentPrefix = '//';
         let commentSuffix = '';
+        let forceCommentAbove = false;
 
         switch (languageId) {
             case 'python':
@@ -45,10 +46,16 @@ export function activate(context: vscode.ExtensionContext) {
             case 'shellscript':
             case 'dockerfile':
             case 'makefile':
+            case 'gitignore':
+            case 'ignore':
+            case 'ini':
+            case 'properties':
                 commentPrefix = '#';
+                forceCommentAbove = true;
                 break;
             case 'html':
             case 'xml':
+            case 'markdown':
                 commentPrefix = '<!--';
                 commentSuffix = ' -->';
                 break;
@@ -62,7 +69,12 @@ export function activate(context: vscode.ExtensionContext) {
                 commentPrefix = 'REM';
                 break;
             default:
-                commentPrefix = '//';
+                if (doc.fileName.endsWith('.gitignore') || doc.fileName.endsWith('.env')) {
+                    commentPrefix = '#';
+                    forceCommentAbove = true;
+                } else {
+                    commentPrefix = '//';
+                }
                 break;
         }
 
@@ -146,26 +158,47 @@ export function activate(context: vscode.ExtensionContext) {
 
                 const line = doc.lineAt(lineNum);
                 const text = line.text;
-                const commentStub = `${commentPrefix} ${authorName} |`;
 
                 // If line is empty/whitespace, don't comment
                 if (text.trim().length === 0) return;
 
-                const hasComment = text.includes(commentStub);
-                let newLineText = text;
-                const newComment = ` ${commentPrefix} ${authorName} | ${timestamp}${commentSuffix}`;
+                if (forceCommentAbove) {
+                    const match = text.match(/^(\s*)/);
+                    const indentation = match ? match[1] : '';
+                    const commentLineText = `${indentation}${commentPrefix} ${authorName} | ${timestamp}${commentSuffix}`;
 
-                if (hasComment) {
-                    const splitParts = text.split(commentStub);
-                    newLineText = splitParts[0].trimEnd();
+                    let alreadyCommented = false;
+                    if (lineNum > 0) {
+                        const prevLine = doc.lineAt(lineNum - 1);
+                        const prevText = prevLine.text.trim();
+                        // Check if previous line is a codestamp comment
+                        if (prevText.startsWith(commentPrefix) && prevText.includes(authorName) && prevText.includes('|')) {
+                            edits.push(vscode.TextEdit.replace(prevLine.range, commentLineText));
+                            alreadyCommented = true;
+                        }
+                    }
+
+                    if (!alreadyCommented) {
+                        edits.push(vscode.TextEdit.insert(line.range.start, commentLineText + '\n'));
+                    }
+                } else {
+                    const commentStub = `${commentPrefix} ${authorName} |`;
+                    const hasComment = text.includes(commentStub);
+                    let newLineText = text;
+                    const newComment = ` ${commentPrefix} ${authorName} | ${timestamp}${commentSuffix}`;
+
+                    if (hasComment) {
+                        const splitParts = text.split(commentStub);
+                        newLineText = splitParts[0].trimEnd();
+                    }
+
+                    if (newLineText.trim().length === 0) return;
+
+                    edits.push(vscode.TextEdit.replace(
+                        line.range,
+                        newLineText + newComment
+                    ));
                 }
-
-                if (newLineText.trim().length === 0) return;
-
-                edits.push(vscode.TextEdit.replace(
-                    line.range,
-                    newLineText + newComment
-                ));
 
             } else {
                 // Block Behavior

@@ -1,5 +1,14 @@
+# Build output
 out
+
+# Dependencies
 node_modules
+
+# Values
 .vscode-test
+
+# Extension package
 *.vsix
+
+# System files
 .DS_Store
