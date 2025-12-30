@@ -1,0 +1,61 @@
+{
+    "name": "codestamp",
+    "displayName": "CodeStamp",
+    "description": "Automatically adds comments with author name and timestamp on save",
+    "publisher": "PrinceGarg",
+    "icon": "icon.png",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.96.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "configuration": {
+            "title": "CodeStamp",
+            "properties": {
+                "codestamp.authorName": {
+                    "type": "string",
+                    "default": "User",
+                    "description": "Author name to use in the log comment."
+                }
+            }
+        },
+        "commands": [
+            {
+                "command": "codestamp.setAuthorName",
+                "title": "CodeStamp: Set Author Name"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.2.0",
+        "@types/mocha": "^9.1.1",
+        "@types/node": "16.x",
+        "@types/vscode": "^1.96.0",
+        "@typescript-eslint/eslint-plugin": "^5.21.0",
+        "@typescript-eslint/parser": "^5.21.0",
+        "@vscode/test-electron": "^2.1.3",
+        "eslint": "^8.14.0",
+        "glob": "^8.0.1",
+        "mocha": "^9.2.2",
+        "typescript": "^4.6.3"
+    },
+    "dependencies": {
+        "@types/diff": "^7.0.2",
+        "diff": "^8.0.2"
+    }
+}
