@@ -24,13 +24,23 @@ CodeStamp intelligently detects the type of change you make:
 ### 2. Intelligent Clustering
 If you paste a large function or make edits to adjacent lines separated by whitespace, CodeStamp groups them into a **single block** instead of cluttering every line with comments.
 
-### 3. Multi-Language Support
+### 3. Smart Cleanup
+When CodeStamp wraps your code into a block (creating Start/End markers), it **automatically removes** any existing inline CodeStamp comments within that block to keep your code clean and duplicate-free.
+
+### 4. Multi-Language Support
 Supports syntax for major languages:
-- **`//`**: JavaScript, TypeScript, C, C++, Java, C#, Go, Rust
+- **`//`**: JavaScript, TypeScript, C, C++, Java, C#, Go, Rust, JSONC (e.g. `tsconfig.json`)
 - **`#`**: Python, YAML, Shell, Dockerfile, Makefile
 - **`<!-- -->`**: HTML, XML
 - **`/* */`**: CSS, SCSS, Less
 - **`REM`**: Batch Files
+
+## Excluded Files
+To prevent errors and maintain file integrity, CodeStamp **automatically skips**:
+- Strict JSON files (e.g., `package.json`, `.json` files without comments support).
+- Lock files (`package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`).
+
+*Note: JSON files that support comments (like `tsconfig.json`, `.jsonc`, or `.vscode/settings.json`) **are** supported.*
 
 ## Usage
 

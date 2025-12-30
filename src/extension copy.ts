@@ -18,37 +18,28 @@ export function activate(context: vscode.ExtensionContext) {
         if (newName !== undefined) {
             await config.update('authorName', newName, vscode.ConfigurationTarget.Global);
             vscode.window.showInformationMessage(`CodeStamp Author Name updated to: ${newName}`);
-        }
+        } // Prince Garg | 30/12/2025, 21:32:28
     });
 
     context.subscriptions.push(commandDisposable);
 
-
+    // Start Prince Garg | 30/12/2025, 21:02:33 // Prince Garg | 30/12/2025, 21:05:10
 
     const disposable = vscode.workspace.onWillSaveTextDocument(async (event) => {
-
+        // End Prince Garg | 30/12/2025, 21:02:33 // Prince Garg | 30/12/2025, 21:05:10
         const doc = event.document;
         if (doc.uri.scheme !== 'file') {
             return;
         }
 
-
+        // Start Prince Garg | 30/12/2025, 21:13:38
         // --- Fix: Undesirable File Types ---
-        const fileName = doc.fileName;
-        // Simple basename extraction
-        const basename = fileName.substring(fileName.lastIndexOf('/') + 1); // Mac/Linux separator, VS Code URIs use /
-
-        const excludedFiles = ['package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml'];
-        if (excludedFiles.includes(basename)) {
-            return;
-        }
-
-        if (doc.languageId === 'json') {
+        if (doc.languageId === 'json' || doc.fileName.endsWith('.json')) {
             // JSON does not support comments, avoid breaking files like package.json
             return;
         }
 
-
+        // End Prince Garg | 30/12/2025, 21:13:38
         console.log('Processing save for:', doc.fileName);
 
         const config = vscode.workspace.getConfiguration('codestamp');
@@ -108,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
             return;
         }
 
-
+        // Start Prince Garg | 30/12/2025, 21:02:33
         // --- Git Undo Logic Start ---
         const edits: vscode.TextEdit[] = [];
         const handledLines = new Set<number>(); // Track lines handled by Undo logic
@@ -263,7 +254,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
         // --- Git Undo Logic End ---
 
-
+        // End Prince Garg | 30/12/2025, 21:02:33
         const newContent = doc.getText();
         const changes = diff.diffLines(originalContent, newContent);
 
@@ -279,7 +270,7 @@ export function activate(context: vscode.ExtensionContext) {
         changes.forEach((part) => {
             if (part.added) {
                 const count = part.count || 0;
-
+                // Start Prince Garg | 30/12/2025, 21:02:33
                 // Check if this range starts/intersects with handledLines?
                 // If ANY line in the range is handled, we should probably skip the whole range or split it?
                 // Simplification: checking start line.
@@ -297,7 +288,7 @@ export function activate(context: vscode.ExtensionContext) {
                         end: currentLineIndex + count - 1
                     });
                 }
-
+                // End Prince Garg | 30/12/2025, 21:02:33
                 currentLineIndex += count;
             } else if (part.removed) {
             } else {
@@ -342,7 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
         mergedRanges.forEach(range => {
             const height = range.end - range.start + 1;
 
-
+            // Start Prince Garg | 30/12/2025, 20:54:33
             // Helper to check for existing enclosing block
             const checkEnclosingBlock = (startLine: number, endLine: number) => {
                 let foundStart = -1;
@@ -413,7 +404,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (enclosing.foundStart !== -1 && enclosing.foundEnd !== -1) {
                 // Check if Author Matches
                 if (enclosing.existingAuthor === authorName) {
-
+                    // Start Prince Garg | 30/12/2025, 21:13:38
                     // Fix: Date Comparison
                     // "30/12/2025, 21:04:38"
                     // We split by comma to ignore time deviations, assuming same locale format.
@@ -426,15 +417,16 @@ export function activate(context: vscode.ExtensionContext) {
                     // Robustness: If they are identical prefix?
                     if (currentDatePart === existingDatePart || enclosing.existingDateStr.startsWith(currentDatePart)) {
                         // UPDATE existing comments
+                        // End Prince Garg | 30/12/2025, 21:13:38 // Prince Garg | 30/12/2025, 21:18:35
                         const startLine = doc.lineAt(enclosing.foundStart);
                         const newStartText = startLine.text.replace(enclosing.existingDateStr, timestamp);
                         edits.push(vscode.TextEdit.replace(startLine.range, newStartText));
 
                         const endLine = doc.lineAt(enclosing.foundEnd);
-                        const newEndText = endLine.text.replace(enclosing.existingDateStr, timestamp);
+                        const newEndText = endLine.text.replace(enclosing.existingDateStr, timestamp); // Prince Garg | 30/12/2025, 21:13:38
                         edits.push(vscode.TextEdit.replace(endLine.range, newEndText));
 
-
+                        // Start Prince Garg | 30/12/2025, 21:18:35
                         // Fix: Block Cleanup
                         // Remove any inline comments inside the block for the same author
                         for (let i = enclosing.foundStart + 1; i < enclosing.foundEnd; i++) {
@@ -459,14 +451,14 @@ export function activate(context: vscode.ExtensionContext) {
                             }
                         }
 
-
-                        return;
+                        // End Prince Garg | 30/12/2025, 21:18:35
+                        return; // Prince Garg | 30/12/2025, 21:13:38
                     }
                 }
             }
 
 
-
+            // End Prince Garg | 30/12/2025, 20:54:33
             if (height === 1) {
                 // Single Line Behavior
                 const lineNum = range.start;
@@ -531,10 +523,11 @@ export function activate(context: vscode.ExtensionContext) {
                         for (let i = startRangeLine; i <= endRangeLine; i++) {
                             const l = doc.lineAt(i);
                             let t = l.text;
-                            // Remove comment part using consistent logic
+                            // Remove comment part using consistent logic // Prince Garg | 30/12/2025, 20:59:12
                             const stub = `${commentPrefix} ${authorName} |`;
                             if (t.includes(stub)) {
                                 const parts = t.split(stub);
+                                // Start Prince Garg | 30/12/2025, 20:59:12
                                 if (parts.length > 0) {
                                     t = parts[0].trimEnd();
                                 }
@@ -546,7 +539,7 @@ export function activate(context: vscode.ExtensionContext) {
                             }
                         }
 
-                        return; // Skip adding single line comment
+                        return; // Skip adding single line comment // Prince Garg | 30/12/2025, 21:05:10
                     }
                 }
                 // --- Comment Merging Logic End ---
@@ -568,7 +561,10 @@ export function activate(context: vscode.ExtensionContext) {
                             // If it says "Start", we probably shouldn't mess with it here unless we are sure.
                             // But this logic is for single line inserts. 
 
-                            // See if previous line is a codestamp comment
+                            // Start Prince Garg | 30/12/2025, 20:58:31
+                            // Wait, we are here because checkEnclosingBlock didn't find a block,
+                            // or the author/date didn't match. So we proceed as normal.
+                            // End Prince Garg | 30/12/2025, 20:58:31
                             edits.push(vscode.TextEdit.replace(prevLine.range, commentLineText));
                             alreadyCommented = true;
                         }
